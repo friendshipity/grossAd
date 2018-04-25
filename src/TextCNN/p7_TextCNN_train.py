@@ -13,8 +13,8 @@ import numpy as np
 import tensorflow as tf
 from gensim.models import word2vec
 
-from src.TextCNN.p7_TextCNN_model import TextCNN
-from src.TextCNN.data_util import create_vocabulary, load_data_multilabel
+from src.TextCNN import TextCNN
+from src.TextCNN import create_vocabulary, load_data_multilabel
 
 #configuration
 FLAGS=tf.app.flags.FLAGS
