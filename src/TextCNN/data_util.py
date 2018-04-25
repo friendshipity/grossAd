@@ -12,7 +12,40 @@ UNK_ID=1
 _PAD="_PAD"
 _UNK="UNK"
 
-
+def load_data_multilabel2(traning_data_path,vocab_word2index, vocab_label2index,sentence_len,training_portion=0.95):
+    """
+    convert data as indexes using word2index dicts.
+    :param traning_data_path:
+    :param vocab_word2index:
+    :param vocab_label2index:
+    :return:
+    """
+    file_object = codecs.open(traning_data_path, errors='ignore', encoding='utf-8')
+    lines = file_object.readlines()
+    random.shuffle(lines)
+    label_size=2
+    X = []
+    Y = []
+    for i,line in enumerate(lines):
+        raw_list = line.strip().split("__label__")
+        input_list = list()
+        for x in line:
+            input_list.append(x)
+        input_list = [x.strip().replace(" ", "") for x in input_list if x != '']
+        x=[vocab_word2index.get(x,UNK_ID) for x in input_list]
+        label_list = raw_list[1:]
+        label_list = [l.strip().replace(" ", "") for l in label_list if l != '']
+        label_list = [vocab_label2index[label] for label in label_list]
+        y = transform_multilabel_as_multihot(label_list, label_size)
+        X.append(x)
+        Y.append(y)
+    X = pad_sequences(X, maxlen=sentence_len, value=0.)  # padding to max length
+    number_examples = len(lines)
+    training_number=int(training_portion* number_examples)
+    train = (X[0:training_number], Y[0:training_number])
+    valid_number=min(1000,number_examples-training_number)
+    test = (X[training_number+ 1:training_number+valid_number+1], Y[training_number + 1:training_number+valid_number+1])
+    return train,test
 
 def load_data_multilabel(traning_data_path,vocab_word2index, vocab_label2index,sentence_len,training_portion=0.95):
     """

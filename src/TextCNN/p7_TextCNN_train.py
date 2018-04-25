@@ -13,13 +13,14 @@ import numpy as np
 import tensorflow as tf
 from gensim.models import word2vec
 
-from src.TextCNN import TextCNN
-from src.TextCNN import create_vocabulary, load_data_multilabel
-
+from src.TextCNN.p7_TextCNN_model import TextCNN
+from src.TextCNN.data_util import create_vocabulary, load_data_multilabel, load_data_multilabel2
+from src.data_preprocess import get_vocabulary
 #configuration
 FLAGS=tf.app.flags.FLAGS
 
-tf.app.flags.DEFINE_string("traning_data_path","../data/sample_multiple_label.txt","path of traning data.") #sample_multiple_label.txt-->train_label_single100_merge
+# tf.app.flags.DEFINE_string("traning_data_path","../data/sample_multiple_label.txt","path of traning data.") #sample_multiple_label.txt-->train_label_single100_merge
+tf.app.flags.DEFINE_string("traning_data_path","../data/comments2.txt","path of traning data.") #sample_multiple_label.txt-->train_label_single100_merge
 tf.app.flags.DEFINE_integer("vocab_size",100000,"maximum vocab size.")
 
 tf.app.flags.DEFINE_float("learning_rate",0.0003,"learning rate")
@@ -42,18 +43,27 @@ filter_sizes=[6,7,8]
 #1.load data(X:list of lint,y:int). 2.create session. 3.feed data. 4.training (5.validation) ,(6.prediction)
 def main(_):
     trainX, trainY, testX, testY = None, None, None, None
-    vocabulary_word2index, vocabulary_index2word, vocabulary_label2index, vocabulary_index2label= create_vocabulary(FLAGS.traning_data_path,FLAGS.vocab_size,name_scope=FLAGS.name_scope)
+    # vocabulary_word2index, vocabulary_index2word, vocabulary_label2index, vocabulary_index2label= create_vocabulary(FLAGS.traning_data_path,FLAGS.vocab_size,name_scope=FLAGS.name_scope)
+    vocabulary_word2index, vocabulary_index2word, vocabulary_label2index, vocabulary_index2label = get_vocabulary()
+
     vocab_size = len(vocabulary_word2index);print("cnn_model.vocab_size:",vocab_size);num_classes=len(vocabulary_index2label);print("num_classes:",num_classes)
-    train, test= load_data_multilabel(FLAGS.traning_data_path,vocabulary_word2index, vocabulary_label2index,FLAGS.sentence_len)
+    train, test= load_data_multilabel2(FLAGS.traning_data_path,vocabulary_word2index, vocabulary_label2index,FLAGS.sentence_len)
     trainX, trainY = train
     testX, testY = test
+    # vocabulary_word2index, vocabulary_index2word, vocabulary_label2index, vocabulary_index2label = get_vocabulary()
+    # vocab_size = len(vocabulary_word2index);
+    # print("cnn_model.vocab_size:",vocab_size);
+    #
+    # train, test= load_data_bilabel(FLAGS.traning_data_path,vocabulary_word2index,FLAGS.sentence_len)
+    # trainX, trainY = train
+    # testX, testY = test
     #print some message for debug purpose
     print("length of training data:",len(trainX),";length of validation data:",len(testX))
     print("trainX[0]:", trainX[0]);
     print("trainY[0]:", trainY[0])
-    train_y_short = get_target_label_short(trainY[0])
-    print("train_y_short:", train_y_short)
-
+    # train_y_short = get_target_label_short(trainY[0])
+    # print("train_y_short:", train_y_short)
+    num_classes=2
     #2.create session.
     config=tf.ConfigProto()
     config.gpu_options.allow_growth=True
