@@ -11,6 +11,10 @@ import os
 
 import numpy as np
 import tensorflow as tf
+import sys
+sys.path.append('E:\grossAd')
+print(sys.path)
+
 from gensim.models import word2vec
 
 from TextCNN.data_util import create_vocabulary1, load_data_multilabel2
