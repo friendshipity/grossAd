@@ -4,16 +4,19 @@
 # import sys
 # reload(sys)
 # sys.setdefaultencoding('utf8')
-import tensorflow as tf
-import numpy as np
-#from p5_fastTextB_model import fastTextB as fastText
-# from a02_TextCNN.other_experiement.data_util_zhihu import load_data_predict,load_final_test_data,create_voabulary,create_voabulary_label
-from tflearn.data_utils import pad_sequences #to_categorical
-import os
 import codecs
+import os
+
+import numpy as np
+import tensorflow as tf
+# from p5_fastTextB_model import fastTextB as fastText
+# from a02_TextCNN.other_experiement.data_util_zhihu import load_data_predict,load_final_test_data,create_voabulary,create_voabulary_label
+from tflearn.data_utils import pad_sequences  # to_categorical
+
+from data_preprocess import get_vocabulary
+from src.TextCNN.data_util import create_vocabulary1, load_data_multilabel2
 from src.TextCNN.p7_TextCNN_model import TextCNN
-from src.TextCNN.data_util import create_vocabulary1, load_data_multilabel, load_data_multilabel2
-from src.data_preprocess import get_vocabulary
+
 #configuration
 FLAGS=tf.app.flags.FLAGS
 # tf.app.flags.DEFINE_float("learning_rate",0.01,"learning rate")
