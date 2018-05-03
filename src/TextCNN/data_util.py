@@ -6,6 +6,7 @@ from tflearn.data_utils import pad_sequences
 from collections import Counter
 import os
 import pickle
+from sklearn.cross_validation import train_test_split
 
 PAD_ID = 0
 UNK_ID=1
@@ -42,9 +43,18 @@ def load_data_multilabel2(traning_data_path,vocab_word2index, vocab_label2index,
     X = pad_sequences(X, maxlen=sentence_len, value=0.)  # padding to max length
     number_examples = len(lines)
     training_number=int(training_portion* number_examples)
-    train = (X[0:training_number], Y[0:training_number])
-    valid_number=min(1000,number_examples-training_number)
-    test = (X[training_number+ 1:training_number+valid_number+1], Y[training_number + 1:training_number+valid_number+1])
+
+    train_X, test_X, train_y, test_y = train_test_split(X,
+                                                        Y,
+                                                        test_size=0.2,
+                                                            random_state=0)
+    train = (train_X,train_y)
+    test = (test_X,test_y)
+    # old = np.array(np.hstack((X, Y)),dtype='int32')
+    # slice = random.sample(old, 5)
+    # train = (X[0:training_number], Y[0:training_number])
+    # valid_number=min(1000,number_examples-training_number)
+    # test = (X[training_number+ 1:training_number+valid_number+1], Y[training_number + 1:training_number+valid_number+1])
     return train,test
 
 def load_data_multilabel(traning_data_path,vocab_word2index, vocab_label2index,sentence_len,training_portion=0.95):
@@ -151,6 +161,71 @@ def create_vocabulary(training_data_path,vocab_size,name_scope='cnn'):
             label,_=tuplee;label=str(label)
             vocabulary_label2index[label]=i
             vocabulary_index2label[i]=label
+
+        #save to file system if vocabulary of words not exists.
+        if not os.path.exists(cache_path):
+            with open(cache_path, 'ab') as data_f:
+                pickle.dump((vocabulary_word2index,vocabulary_index2word,vocabulary_label2index,vocabulary_index2label), data_f)
+    return vocabulary_word2index,vocabulary_index2word,vocabulary_label2index,vocabulary_index2label
+
+
+
+def create_vocabulary1(training_data_path,name_scope='cnn'):
+    """
+    create vocabulary
+    :param training_data_path:
+    :param vocab_size:
+    :param name_scope:
+    :return:
+    """
+
+    cache_vocabulary_label_pik='cache'+"_"+name_scope # path to save cache
+    if not os.path.isdir(cache_vocabulary_label_pik): # create folder if not exists.
+        os.makedirs(cache_vocabulary_label_pik)
+
+    # if cache exists. load it; otherwise create it.
+    cache_path =cache_vocabulary_label_pik+"/"+'vocab_label.pik'
+    print("cache_path:",cache_path,"file_exists:",os.path.exists(cache_path))
+    if os.path.exists(cache_path):
+        with open(cache_path, 'rb') as data_f:
+            return pickle.load(data_f)
+    else:
+
+        PAD_ID = 0
+        UNK_ID = 1
+        _PAD = "_PAD"
+        _UNK = "UNK"
+
+        # f = open('e:\grossAd\src\data\comments2.txt', encoding='utf-8', errors='ignore')
+        f = open(training_data_path, encoding='utf-8', errors='ignore')
+        vacabulary = set()
+        labels = set()
+        for line in f.readlines():
+            comment = line.split("__label__")[0]
+            labels.add(line.split("__label__")[1].strip())
+            for j in range(0, len(comment)):
+                vacabulary.add(str(comment[j]))
+
+        f.close()
+
+        vocabulary_word2index = dict()
+        vocabulary_index2word = dict()
+        vocabulary_label2index = dict()
+        vocabulary_index2label = dict()
+
+        vocabulary_word2index[_PAD] = PAD_ID
+        vocabulary_index2word[PAD_ID] = _PAD
+        vocabulary_word2index[_UNK] = UNK_ID
+        vocabulary_index2word[UNK_ID] = _UNK
+
+        for index, word in enumerate(vacabulary):
+            vocabulary_word2index[word] = index + 2
+            vocabulary_index2word[index + 2] = word
+
+        for index, word in enumerate(labels):
+            vocabulary_label2index[word] = index
+            vocabulary_index2label[index] = word
+
 
         #save to file system if vocabulary of words not exists.
         if not os.path.exists(cache_path):

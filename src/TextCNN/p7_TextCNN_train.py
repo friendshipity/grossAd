@@ -14,7 +14,7 @@ import tensorflow as tf
 from gensim.models import word2vec
 
 from src.TextCNN.p7_TextCNN_model import TextCNN
-from src.TextCNN.data_util import create_vocabulary, load_data_multilabel, load_data_multilabel2
+from src.TextCNN.data_util import create_vocabulary,create_vocabulary1, load_data_multilabel, load_data_multilabel2
 from src.data_preprocess import get_vocabulary
 #configuration
 FLAGS=tf.app.flags.FLAGS
@@ -31,7 +31,7 @@ tf.app.flags.DEFINE_string("ckpt_dir","text_cnn_title_desc_checkpoint/","checkpo
 tf.app.flags.DEFINE_integer("sentence_len",100,"max sentence length")
 tf.app.flags.DEFINE_integer("embed_size",128,"embedding size")
 tf.app.flags.DEFINE_boolean("is_training",True,"is traning.true:tranining,false:testing/inference")
-tf.app.flags.DEFINE_integer("num_epochs",10,"number of epochs to run.")
+tf.app.flags.DEFINE_integer("num_epochs",50,"number of epochs to run.")
 tf.app.flags.DEFINE_integer("validate_every", 1, "Validate every validate_every epochs.") #每10轮做一次验证
 tf.app.flags.DEFINE_boolean("use_embedding",False,"whether to use embedding or not.")
 tf.app.flags.DEFINE_integer("num_filters", 128, "number of filters") #256--->512
@@ -43,10 +43,29 @@ filter_sizes=[6,7,8]
 #1.load data(X:list of lint,y:int). 2.create session. 3.feed data. 4.training (5.validation) ,(6.prediction)
 def main(_):
     trainX, trainY, testX, testY = None, None, None, None
-    # vocabulary_word2index, vocabulary_index2word, vocabulary_label2index, vocabulary_index2label= create_vocabulary(FLAGS.traning_data_path,FLAGS.vocab_size,name_scope=FLAGS.name_scope)
-    vocabulary_word2index, vocabulary_index2word, vocabulary_label2index, vocabulary_index2label = get_vocabulary()
+    vocabulary_word2index, vocabulary_index2word, vocabulary_label2index, vocabulary_index2label= create_vocabulary1(FLAGS.traning_data_path,name_scope=FLAGS.name_scope)
+    # vocabulary_word2index, vocabulary_index2word, vocabulary_label2index, vocabulary_index2label = get_vocabulary()
 
     vocab_size = len(vocabulary_word2index);print("cnn_model.vocab_size:",vocab_size);num_classes=len(vocabulary_index2label);print("num_classes:",num_classes)
+
+    # vocabulary_word2index, vocabulary_index2word, vocabulary_label2index, vocabulary_index2label=create_vocabulary(FLAGS.traning_data_path,FLAGS.vocab_size,name_scope=FLAGS.name_scope)
+####save vocabu
+    # file_object = open('vocabulary_word2index.txt', 'w', encoding="utf8")
+    # file_object.write(str(vocabulary_word2index))
+    # file_object.close()
+    #
+    # file_object = open('vocabulary_index2word.txt', 'w', encoding="utf8")
+    # file_object.write(str(vocabulary_index2word))
+    # file_object.close()
+    # file_object = open('vocabulary_label2index.txt', 'w', encoding="utf8")
+    # file_object.write(str(vocabulary_label2index))
+    # file_object.close()
+    # file_object = open('vocabulary_index2label.txt', 'w', encoding="utf8")
+    # file_object.write(str(vocabulary_index2label))
+    # file_object.close()
+
+
+
     train, test= load_data_multilabel2(FLAGS.traning_data_path,vocabulary_word2index, vocabulary_label2index,FLAGS.sentence_len)
     trainX, trainY = train
     testX, testY = test
@@ -69,8 +88,9 @@ def main(_):
     config.gpu_options.allow_growth=True
     with tf.Session(config=config) as sess:
         #Instantiate Model
-        textCNN=TextCNN(filter_sizes,FLAGS.num_filters,num_classes, FLAGS.learning_rate, FLAGS.batch_size, FLAGS.decay_steps,
-                        FLAGS.decay_rate,FLAGS.sentence_len,vocab_size,FLAGS.embed_size,FLAGS.is_training,multi_label_flag=FLAGS.multi_label_flag)
+        textCNN=TextCNN(filter_sizes,FLAGS.num_filters,num_classes, FLAGS.learning_rate, FLAGS.batch_size,
+                        FLAGS.decay_steps,FLAGS.decay_rate,
+                        FLAGS.sentence_len,vocab_size,FLAGS.embed_size,FLAGS.is_training,multi_label_flag=FLAGS.multi_label_flag)
         #Initialize Save
         saver=tf.train.Saver()
         if os.path.exists(FLAGS.ckpt_dir+"checkpoint"):
@@ -102,7 +122,7 @@ def main(_):
                     feed_dict[textCNN.input_y_multilabel]=trainY[start:end]
                 curr_loss,lr,_,_=sess.run([textCNN.loss_val,textCNN.learning_rate,textCNN.update_ema,textCNN.train_op],feed_dict)
                 loss,counter=loss+curr_loss,counter+1
-                if counter %50==0:
+                if counter %51==0:
                     print("Epoch %d\tBatch %d\tTrain Loss:%.3f\tLearning rate:%.5f" %(epoch,counter,loss/float(counter),lr))
 
                 ########################################################################################################
