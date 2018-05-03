@@ -14,8 +14,8 @@ import tensorflow as tf
 from tflearn.data_utils import pad_sequences  # to_categorical
 
 from data_preprocess import get_vocabulary
-from src.TextCNN.data_util import load_data_multilabel2
-from src.TextCNN.p7_TextCNN_model import TextCNN
+from TextCNN.data_util import load_data_multilabel2
+from TextCNN.p7_TextCNN_model import TextCNN
 
 #configuration
 FLAGS=tf.app.flags.FLAGS
